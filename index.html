@@ -516,7 +516,7 @@ Can you please register the following guests for 3pm today?
 Wendy Cong Zhao
 Nate Dorr
 Adam Finchler
-They will be working with thesis student AK Hansen in HN537 for her thesis installation.
+They will be working with IMA/MFA student AK Hansen in HN537 for her thesis installation.
 Thanks!
 Jess
 ---
@@ -526,14 +526,16 @@ Now write a new email using these details:
 Student: ${studentName} (EMPLID: ${studentEmplid}${studentPhone ? ', ' + studentPhone : ''})
 Visit: ${fmtDate(visitDate)} at ${timeRange}
 Building & room: ${buildingLabel}, ${visitRoom}
-Purpose: ${visitPurpose || 'visit'}
+Purpose: ${visitPurpose || 'a visit'}
 Guests (just list their names in the body, no extra details):
 ${guestNameList}
 ${lateWarning}
 
 Start with "Subject: " on the first line.
 Then the greeting: "Hi Visitor's Center and Elizabeth,"
-Body should be very short — 2–4 sentences max. List guest names one per line. Sign off as the student's name, not Jess.
+Body should be very short — 2–4 sentences max. List guest names one per line.
+The sentence describing the visit must say "IMA/MFA student ${studentName}" (never "thesis student") and use the purpose field verbatim to describe what they're doing — e.g. "They will be working with IMA/MFA student ${studentName} in ${visitRoom} for ${visitPurpose || 'a visit'}."
+Sign off as the student's name, not Jess.
 Do not include guest emails or addresses in the email body.
 Do not use bullet points.`;
 
