@@ -357,8 +357,8 @@
 </div>
 
 <script>
-const EMAIL_1 = 'iamjessshane@gmail.com';
-const EMAIL_2 = 'jess.shane@pushkin.fm';
+const EMAIL_1 = 'ealverio@hunter.cuny.edu';
+const EMAIL_2 = 'visitors@hunter.cuny.edu';
 const JESS_EMAIL = 'imamfacoordinator@gmail.com';
 const VISITOR_INSTRUCTIONS = 'https://ima-mfa.hunter.cuny.edu/office-and-facilities/';
 
@@ -493,91 +493,33 @@ async function submitForm() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  setStatus('loading', '<span class="spinner"></span>&nbsp; Composing notification email…');
 
   const guestNameList = guests.map(g => g.name).join('\n');
-  const guestDetailList = guests.map((g, i) =>
-    `${i+1}. ${g.name} — Email: ${g.email} — Address: ${g.address}`
-  ).join('\n');
-
   const timeRange = visitStart
-    ? (fmtTime(visitStart) + (visitEnd ? '–' + fmtTime(visitEnd) : ''))
+    ? (fmtTime(visitStart) + (visitEnd ? '\u2013' + fmtTime(visitEnd) : ''))
     : 'time not specified';
-
   const lateWarning = isLateThursday() && (visitDay === 5 || visitDay === 6)
-    ? '\n\nNote: This request was submitted after 4 pm Thursday, so it may not be guaranteed.' : '';
+    ? '\n\nNote: This request was submitted after 4 pm Thursday and may not be guaranteed.' : '';
 
-  const prompt = `You are an assistant for the IMA/MFA Program at Hunter College (CUNY). Write a short, friendly, professional email to the Visitors Center and Elizabeth Alverio asking them to pre-register guests for an upcoming visit.
+  const subject = `Guest Pre-Registration \u2013 ${studentName} \u2013 ${fmtDate(visitDate)}`;
+  const purposeLine = visitPurpose ? ' for ' + visitPurpose : '';
+  const body = `Hi Visitor's Center and Elizabeth,\n\nCan you please register the following guests for ${timeRange} on ${fmtDate(visitDate)}?\n\n${guestNameList}\n\nThey will be working with IMA/MFA student ${studentName} in ${buildingLabel} ${visitRoom}${purposeLine}.${lateWarning}\n\nThanks!\n${studentName}`;
 
-Closely follow this style example — keep it brief, conversational, and direct, listing guest names simply:
----
-Hi Visitor's Center and Elizabeth,
-Can you please register the following guests for 3pm today?
-Wendy Cong Zhao
-Nate Dorr
-Adam Finchler
-They will be working with IMA/MFA student AK Hansen in HN537 for her thesis installation.
-Thanks!
-Jess
----
-
-Now write a new email using these details:
-
-Student: ${studentName} (EMPLID: ${studentEmplid}${studentPhone ? ', ' + studentPhone : ''})
-Visit: ${fmtDate(visitDate)} at ${timeRange}
-Building & room: ${buildingLabel}, ${visitRoom}
-Purpose: ${visitPurpose || 'a visit'}
-Guests (just list their names in the body, no extra details):
-${guestNameList}
-${lateWarning}
-
-Start with "Subject: " on the first line.
-Then the greeting: "Hi Visitor's Center and Elizabeth,"
-Body should be very short — 2–4 sentences max. List guest names one per line.
-The sentence describing the visit must say "IMA/MFA student ${studentName}" (never "thesis student") and use the purpose field verbatim to describe what they're doing — e.g. "They will be working with IMA/MFA student ${studentName} in ${visitRoom} for ${visitPurpose || 'a visit'}."
-Sign off as the student's name, not Jess.
-Do not include guest emails or addresses in the email body.
-Do not use bullet points.`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await res.json();
-    const raw = (data.content?.find(b => b.type === 'text')?.text || '').trim();
-    if (!raw) throw new Error('No response from AI');
-
-    const subjectMatch = raw.match(/^Subject:\s*(.+)/m);
-    const subject = subjectMatch ? subjectMatch[1].trim() : `Guest Pre-Registration — ${studentName} — ${fmtDate(visitDate)}`;
-    const body = raw.replace(/^Subject:.*\n?/m, '').trim();
-
-    const recipients = [EMAIL_1, EMAIL_2];
-    for (const to of recipients) {
-      window.open(`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
-    }
-
-    setStatus('success', `
-      <strong>✓ Email drafts opened</strong> — addressed to the Visitors Center and Elizabeth.<br>
-      <span style="font-size:13px;">Review and send from your email client. If nothing opened, check browser pop-up permissions.</span><br><br>
-      <span style="font-size:13px;">Share the <a href="${VISITOR_INSTRUCTIONS}" target="_blank" rel="noopener">IMA visitor instructions page</a> with your guests so they know how to get their pass and find the space.</span>
-      <details>
-        <summary>Preview email</summary>
-        <pre>${raw.replace(/</g,'&lt;')}</pre>
-      </details>
-    `);
-    btn.disabled = false;
-
-  } catch(err) {
-    setStatus('error', 'Something went wrong generating the email. Please try again.<br><small style="opacity:0.7;">' + err.message + '</small>');
-    btn.disabled = false;
+  const recipients = [EMAIL_1, EMAIL_2];
+  for (const to of recipients) {
+    window.open(`mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
   }
+
+  setStatus('success', `
+    <strong>&#10003; Email drafts opened</strong> &#8212; addressed to the Visitors Center and Elizabeth.<br>
+    <span style="font-size:13px;">Review and send from your email client. If nothing opened, check your browser&#39;s pop-up permissions and try again.</span><br><br>
+    <span style="font-size:13px;">Share the <a href="${VISITOR_INSTRUCTIONS}" target="_blank" rel="noopener">IMA visitor instructions page</a> with your guests so they know how to get their pass and find the space.</span>
+    <details>
+      <summary>Preview email</summary>
+      <pre>${body.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre>
+    </details>
+  `);
+  btn.disabled = false;
 }
 
 // Init
